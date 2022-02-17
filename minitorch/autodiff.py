@@ -1,3 +1,6 @@
+from collections import deque
+from collections import defaultdict
+
 variable_count = 1
 
 
@@ -191,7 +194,7 @@ class History:
             list of numbers : a derivative with respect to `inputs`
         """
         # TODO: Implement for Task 1.4.
-        raise NotImplementedError("Need to implement for Task 1.4")
+        return self.last_fn.chain_rule(self.ctx, self.inputs, d_output)
 
 
 class FunctionBase:
@@ -274,7 +277,14 @@ class FunctionBase:
         # Tip: Note when implementing this function that
         # cls.backward may return either a value or a tuple.
         # TODO: Implement for Task 1.3.
-        raise NotImplementedError("Need to implement for Task 1.3")
+        ret_list = []
+        back_list = cls.backward(ctx, d_output)
+        if not hasattr(back_list, "__getitem__"):
+            if isinstance(inputs[0], Variable) and inputs[0].history is not None:
+                ret_list.append((inputs[0], back_list))
+        else:
+            ret_list = [(i, b) for i, b in zip(inputs, back_list) if isinstance(i, Variable) and i.history is not None]
+        return ret_list
 
 
 # Algorithms for backpropagation
@@ -296,7 +306,25 @@ def topological_sort(variable):
                             starting from the right.
     """
     # TODO: Implement for Task 1.4.
-    raise NotImplementedError("Need to implement for Task 1.4")
+    sorted_variables = []
+    sorted_variables_unique_list = []
+    source = deque()
+    if variable.history is not None:
+        source.append(variable)
+
+    while len(source) > 0:
+        cur_variable = source.popleft()
+        # NOTE(@hjj) in autodiff_test3, two Scalar(10.0) with different unique id, in operator will return true
+        # 备注：Scalar重载了等号操作，两个scalar是否相等，直接判断的是数值1.0
+        if cur_variable.unique_id in sorted_variables_unique_list:
+            continue
+        sorted_variables.append(cur_variable)
+        sorted_variables_unique_list.append(cur_variable.unique_id)
+        if cur_variable.history is not None and cur_variable.history.inputs is not None:
+            for var in cur_variable.history.inputs:
+                if isinstance(var, Variable) and var.history is not None:
+                    source.append(var)
+    return sorted_variables
 
 
 def backpropagate(variable, deriv):
@@ -313,4 +341,12 @@ def backpropagate(variable, deriv):
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
     # TODO: Implement for Task 1.4.
-    raise NotImplementedError("Need to implement for Task 1.4")
+    var_deriv_dict = defaultdict(int)
+    var_deriv_dict[variable.unique_id] = deriv
+    sorted_variables = topological_sort(variable)
+    for var in sorted_variables:
+        if var.history is not None and var.is_leaf():
+            var.accumulate_derivative(var_deriv_dict[var.unique_id])
+        else:
+            for last_v, last_d in var.history.backprop_step(var_deriv_dict[var.unique_id]):
+                var_deriv_dict[last_v.unique_id] += last_d

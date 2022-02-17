@@ -27,7 +27,7 @@ def add(x, y):
 
 def neg(x):
     ":math:`f(x) = -x`"
-    return -x
+    return float(-x)
 
 
 def lt(x, y):
@@ -69,7 +69,7 @@ def sigmoid(x):
         float : sigmoid value
     """
     # TODO: Implement for Task 0.1.
-    return 1.0 / (1.0 + exp(-x)) if x >= 0 else exp(x) / (1 + exp(x))
+    return 1.0 / (1.0 + exp(-x)) if x >= 0 else exp(x) / (1.0 + exp(x))
 
 
 def relu(x):
@@ -85,7 +85,7 @@ def relu(x):
         float : relu value
     """
     # TODO: Implement for Task 0.1.
-    return x if x > 0 else 0
+    return x if x > 0 else 0.0
 
 
 EPS = 1e-6
@@ -110,7 +110,7 @@ def log_back(x, d):
 def inv(x):
     ":math:`f(x) = 1/x`"
     # TODO: Implement for Task 0.1.
-    return 1 / x if x != 0 else 0
+    return 1 / x if x != 0 else 0.0
 
 
 def inv_back(x, d):
@@ -122,7 +122,12 @@ def inv_back(x, d):
 def relu_back(x, d):
     r"If :math:`f = relu` compute :math:`d \times f'(x)`"
     # TODO: Implement for Task 0.1.
-    return d if x > 0 else 0
+    return d if x > 0 else 0.0
+
+
+def sigmoid_back(x, d):
+    outcome = sigmoid(x)
+    return outcome * (1 - outcome) * d
 
 
 # ## Task 0.3
