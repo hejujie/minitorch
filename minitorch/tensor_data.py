@@ -1,5 +1,6 @@
 import random
 from .operators import prod
+from . import operators
 from numpy import array, float64, ndarray
 import numba
 
@@ -25,7 +26,8 @@ def index_to_position(index, strides):
     """
 
     # TODO: Implement for Task 2.1.
-    raise NotImplementedError("Need to implement for Task 2.1")
+    return sum([i * s for i, s in zip(index, strides)])
+    # return operators.sum(operators.zipWith(operators.mul)(index, strides))
 
 
 def to_index(ordinal, shape, out_index):
@@ -45,7 +47,9 @@ def to_index(ordinal, shape, out_index):
 
     """
     # TODO: Implement for Task 2.1.
-    raise NotImplementedError("Need to implement for Task 2.1")
+    for i, s in reversed(list(enumerate(shape))):
+        out_index[i] = ordinal % s
+        ordinal = ordinal // s
 
 
 def broadcast_index(big_index, big_shape, shape, out_index):
@@ -66,8 +70,12 @@ def broadcast_index(big_index, big_shape, shape, out_index):
         None : Fills in `out_index`.
     """
     # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
-
+    shape_diff = len(big_shape) - len(shape)
+    for i, s in enumerate(shape):
+        if s == 1:
+            out_index[i] = 0
+        else:
+            out_index[i] = big_index[i + shape_diff]
 
 def shape_broadcast(shape1, shape2):
     """
@@ -84,8 +92,18 @@ def shape_broadcast(shape1, shape2):
         IndexingError : if cannot broadcast
     """
     # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    ret_list = []
+    shape1, shape2 = list(shape1), list(shape2)
+    max_shape, min_shape = (list(shape1), list(shape2)) if len(shape1) > len(shape2) else (list(shape2), list(shape1))
+    min_shape = max_shape[:len(max_shape) - len(min_shape)] + min_shape
+    for s1, s2 in zip(min_shape, max_shape):
+        if s1 != s2 and min(s1, s2) != 1:
+            raise IndexingError
+        else:
+            ret_list.append(max(s1, s2))
 
+    return tuple(ret_list)
+        
 
 def strides_from_shape(shape):
     layout = [1]
@@ -93,6 +111,7 @@ def strides_from_shape(shape):
     for s in reversed(shape):
         layout.append(s * offset)
         offset = s * offset
+    # print(layout, tuple(reversed(layout[:-1])))
     return tuple(reversed(layout[:-1]))
 
 
@@ -190,9 +209,10 @@ class TensorData:
         assert list(sorted(order)) == list(
             range(len(self.shape))
         ), f"Must give a position to each dimension. Shape: {self.shape} Order: {order}"
-
+        new_shape = tuple([self.shape[i] for i in order])
+        new_strides = tuple([self.strides[i] for i in order])
         # TODO: Implement for Task 2.1.
-        raise NotImplementedError("Need to implement for Task 2.1")
+        return TensorData(self._storage, new_shape, new_strides)
 
     def to_string(self):
         s = ""

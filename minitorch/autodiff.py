@@ -277,13 +277,13 @@ class FunctionBase:
         # Tip: Note when implementing this function that
         # cls.backward may return either a value or a tuple.
         # TODO: Implement for Task 1.3.
-        ret_list = []
         back_list = cls.backward(ctx, d_output)
-        if not hasattr(back_list, "__getitem__"):
-            if isinstance(inputs[0], Variable) and inputs[0].history is not None:
-                ret_list.append((inputs[0], back_list))
-        else:
-            ret_list = [(i, b) for i, b in zip(inputs, back_list) if isinstance(i, Variable) and i.history is not None]
+        ret_list = [
+            (i, i.expand(b))
+            for i, b in zip(inputs, wrap_tuple(back_list))
+            if isinstance(i, Variable) and i.history is not None
+        ]
+
         return ret_list
 
 

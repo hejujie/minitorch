@@ -40,7 +40,13 @@ def tensor_map(fn):
 
     def _map(out, out_shape, out_strides, in_storage, in_shape, in_strides):
         # TODO: Implement for Task 2.2.
-        raise NotImplementedError("Need to implement for Task 2.2")
+        for i in range(len(out)):
+            out_idx = [0] * len(out_shape)
+            to_index(i, out_shape, out_idx)
+            in_idx = [0] * len(in_shape)
+            broadcast_index(out_idx, out_shape, in_shape, in_idx)
+            in_pos = index_to_position(in_idx, in_strides)
+            out[i] = fn(in_storage[in_pos])
 
     return _map
 
@@ -131,8 +137,19 @@ def tensor_zip(fn):
         b_strides,
     ):
         # TODO: Implement for Task 2.2.
-        raise NotImplementedError("Need to implement for Task 2.2")
+        for i in range(len(out)):
+            out_idx = [0] * len(out_shape)
+            to_index(i, out_shape, out_idx)
 
+            a_idx = [0] * len(a_shape)
+            b_idx = [0] * len(b_shape)
+
+            broadcast_index(out_idx, out_shape, a_shape, a_idx)
+            broadcast_index(out_idx, out_shape, b_shape, b_idx)
+            a_pos = index_to_position(a_idx, a_strides)
+            b_pos = index_to_position(b_idx, b_strides)
+
+            out[i] = fn(a_storage[a_pos], b_storage[b_pos])
     return _zip
 
 
@@ -202,8 +219,17 @@ def tensor_reduce(fn):
 
     def _reduce(out, out_shape, out_strides, a_storage, a_shape, a_strides, reduce_dim):
         # TODO: Implement for Task 2.2.
-        raise NotImplementedError("Need to implement for Task 2.2")
+        for i, start in enumerate(out):
+            out_idx = [0] * len(out_shape)
+            to_index(i, out_shape, out_idx)
 
+            # 在out中的index，就是in中被reduce的维度的第一个index；
+            a_pos = index_to_position(out_idx, a_strides)
+            reduce_list = [a_storage[a_pos + i * a_strides[reduce_dim]] for i in range(a_shape[reduce_dim])]
+            ret_val = reduce_list[int(start)]
+            for val in reduce_list[int(start) + 1:]:
+                ret_val = fn(ret_val, val)
+            out[i] = ret_val
     return _reduce
 
 

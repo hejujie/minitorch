@@ -283,7 +283,7 @@ class Exp(ScalarFunction):
     def backward(ctx, d_output):
         # TODO: Implement for Task 1.4.
         a = ctx.saved_values
-        return operators.exp(a)
+        return operators.exp(a) * d_output
 
 
 class LT(ScalarFunction):
@@ -315,7 +315,7 @@ class EQ(ScalarFunction):
     def backward(ctx, d_output):
         # TODO: Implement for Task 1.4.
         a, b = ctx.saved_values
-        return (1.0, 1.0) if a == b else (0.0, 0.0)
+        return (0.0, 0.0)
 
 
 def derivative_check(f, *scalars):

@@ -22,6 +22,7 @@ def test_layout():
 
     tensor_data = minitorch.TensorData(data, (5, 3), (1, 5))
     assert tensor_data.shape == (5, 3)
+    # print(tensor_data.index((1, 0)), tensor_data.index((1, 1)))
     assert not tensor_data.is_contiguous()
 
     data = [0] * 4 * 2 * 2
@@ -107,11 +108,9 @@ def test_shape_broadcast():
 
     with pytest.raises(minitorch.IndexingError):
         c = minitorch.shape_broadcast((5, 7, 5, 1), (1, 5, 1, 5))
-        print(c)
 
     with pytest.raises(minitorch.IndexingError):
         c = minitorch.shape_broadcast((5, 2), (5,))
-        print(c)
 
     c = minitorch.shape_broadcast((2, 5), (5,))
     assert c == (2, 5)
