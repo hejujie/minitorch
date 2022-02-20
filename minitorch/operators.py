@@ -27,17 +27,23 @@ def add(x, y):
 
 def neg(x):
     ":math:`f(x) = -x`"
-    return float(-x)
+    # float() not support for numba
+    # return float(-x)
+    return -1.0 * x
 
 
 def lt(x, y):
     ":math:`f(x) =` 1.0 if x is less than y else 0.0"
-    return float(x < y)
+    # float() not support for numba
+    # return float(x < y)
+    return 1.0 if x < y else 0.0
 
 
 def eq(x, y):
     ":math:`f(x) =` 1.0 if x is equal to y else 0.0"
-    return float(x == y)
+    # float() not support for numba
+    # return float(x == y)
+    return 1.0 if x == y else 0.0
 
 
 def max(x, y):
@@ -47,7 +53,8 @@ def max(x, y):
 
 def is_close(x, y):
     ":math:`f(x) = |x - y| < 1e-2` "
-    return float(abs(x - y) < 1e-2)
+    # float() not support for numba
+    return 1.0 if (abs(x - y) < 1e-2) else 0.0
 
 
 def sigmoid(x):
@@ -69,7 +76,9 @@ def sigmoid(x):
         float : sigmoid value
     """
     # TODO: Implement for Task 0.1.
-    return 1.0 / (1.0 + exp(-x)) if x >= 0 else exp(x) / (1.0 + exp(x))
+    # cannot determine Numba type of <class 'function'> exp
+    # return 1.0 / (1.0 + exp(-x)) if x >= 0 else exp(x) / (1.0 + exp(x))
+    return 1.0 / (1.0 + math.exp(-x)) if x >= 0 else math.exp(x) / (1.0 + math.exp(x))
 
 
 def relu(x):
@@ -126,7 +135,8 @@ def relu_back(x, d):
 
 
 def sigmoid_back(x, d):
-    outcome = sigmoid(x)
+    # cannot determine Numba type of <class 'function'> Sigmoid, rewrite sigmoid;
+    outcome = 1.0 / (1.0 + math.exp(-x)) if x >= 0 else math.exp(x) / (1.0 + math.exp(x))
     return outcome * (1 - outcome) * d
 
 

@@ -26,7 +26,12 @@ def index_to_position(index, strides):
     """
 
     # TODO: Implement for Task 2.1.
-    return sum([i * s for i, s in zip(index, strides)])
+    ret = 0
+    for i, s in zip(index, strides):
+        ret += i * s
+    return ret
+    # NOTE sum not support for numba
+    # return sum([i * s for i, s in zip(index, strides)])
     # return operators.sum(operators.zipWith(operators.mul)(index, strides))
 
 
@@ -47,9 +52,11 @@ def to_index(ordinal, shape, out_index):
 
     """
     # TODO: Implement for Task 2.1.
-    for i, s in reversed(list(enumerate(shape))):
-        out_index[i] = ordinal % s
-        ordinal = ordinal // s
+    # NOTE Reversed not support for numba
+    # for i, s in reversed(list(enumerate(shape))):
+    for i in range(len(shape) - 1, -1, -1):
+        out_index[i] = ordinal % shape[i]
+        ordinal = ordinal // shape[i]
 
 
 def broadcast_index(big_index, big_shape, shape, out_index):

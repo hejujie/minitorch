@@ -225,10 +225,10 @@ def tensor_reduce(fn):
 
             # 在out中的index，就是in中被reduce的维度的第一个index；
             a_pos = index_to_position(out_idx, a_strides)
-            reduce_list = [a_storage[a_pos + i * a_strides[reduce_dim]] for i in range(a_shape[reduce_dim])]
-            ret_val = reduce_list[int(start)]
-            for val in reduce_list[int(start) + 1:]:
-                ret_val = fn(ret_val, val)
+            ret_val = a_storage[a_pos + int(start) * a_strides[reduce_dim]]
+            for j in range(int(start) + 1, a_shape[reduce_dim]):
+                ret_val = fn(ret_val, a_storage[a_pos + j * a_strides[reduce_dim]])
+
             out[i] = ret_val
     return _reduce
 

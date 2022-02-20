@@ -38,6 +38,7 @@ class Linear(minitorch.Module):
     def forward(self, x):
         # ASSIGN2.5
         batch, in_size = x.shape
+        # 先broadcast + 点对点乘法，再reduce；
         return (
             self.weights.value.view(1, in_size, self.out_size)
             * x.view(batch, in_size, 1)
