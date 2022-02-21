@@ -54,9 +54,10 @@ def to_index(ordinal, shape, out_index):
     # TODO: Implement for Task 2.1.
     # NOTE Reversed not support for numba
     # for i, s in reversed(list(enumerate(shape))):
+    cur_pos = ordinal * 1
     for i in range(len(shape) - 1, -1, -1):
-        out_index[i] = ordinal % shape[i]
-        ordinal = ordinal // shape[i]
+        out_index[i] = cur_pos % shape[i]
+        cur_pos = cur_pos // shape[i]
 
 
 def broadcast_index(big_index, big_shape, shape, out_index):

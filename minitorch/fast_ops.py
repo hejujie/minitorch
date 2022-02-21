@@ -44,13 +44,14 @@ def tensor_map(fn):
 
     def _map(out, out_shape, out_strides, in_storage, in_shape, in_strides):
         # TODO: Implement for Task 3.1.
-        # numba的特性需要明确的类型与大小，避免python的类型推断，所以这里不能用长度不定的list；
-        for i in range(len(out)):
-            out_idx = np.zeros(MAX_DIMS, np.int32)
+        # replace np.zeros -> np.empty, 减少赋值的循环；将out_idx和in_idx调整到外面（这里不会出错吗？）
+
+        for i in prange(len(out)):
+            out_idx = np.empty(MAX_DIMS, np.int16)
+            in_idx = np.empty(MAX_DIMS, np.int16)
             # out_idx = [0] * len(out_shape)
             to_index(i, out_shape, out_idx)
-            in_idx = np.zeros(MAX_DIMS, np.int32)
-            # in_idx = [0] * len(in_shape)
+          # in_idx = [0] * len(in_shape)
             broadcast_index(out_idx, out_shape, in_shape, in_idx)
             in_pos = index_to_position(in_idx, in_strides)
             out[i] = fn(in_storage[in_pos])
@@ -128,15 +129,16 @@ def tensor_zip(fn):
     ):
 
         # TODO: Implement for Task 3.1.
-        for i in range(len(out)):
-            out_idx = np.zeros(MAX_DIMS, np.int32)
-            # out_idx = [0] * len(out_shape)
-            to_index(i, out_shape, out_idx)
 
-            a_idx = np.zeros(MAX_DIMS, np.int32)
-            b_idx = np.zeros(MAX_DIMS, np.int32)
+
+        for i in prange(len(out)):
+            out_idx = np.empty(MAX_DIMS, np.int32)
+            a_idx = np.empty(MAX_DIMS, np.int32)
+            b_idx = np.empty(MAX_DIMS, np.int32)
+            # out_idx = [0] * len(out_shape)
             # a_idx = [0] * len(a_shape)
             # b_idx = [0] * len(b_shape)
+            to_index(i, out_shape, out_idx)
 
             broadcast_index(out_idx, out_shape, a_shape, a_idx)
             broadcast_index(out_idx, out_shape, b_shape, b_idx)
@@ -201,13 +203,23 @@ def tensor_reduce(fn):
 
     def _reduce(out, out_shape, out_strides, a_storage, a_shape, a_strides, reduce_dim):
         # TODO: Implement for Task 3.1.
-        for i, start in enumerate(out):
-            out_idx = np.zeros(MAX_DIMS, np.int32)
+        for i in prange(len(out)):
+            start = out[i]
+            out_idx = np.empty(MAX_DIMS, np.int16)
             # out_idx = [0] * len(out_shape)
             to_index(i, out_shape, out_idx)
 
             # 在out中的index，就是in中被reduce的维度的第一个index；
             a_pos = index_to_position(out_idx, a_strides)
+
+            # reduce_size = a_shape[reduce_dim] - int(start)
+            # reduce_array = np.empty(reduce_size, np.int16)
+            # for j in prange(int(start), a_shape[reduce_dim]):
+            #     reduce_array[j] = a_storage[a_pos + j * a_strides[reduce_dim]]
+
+            # ret_val = reduce_array[0]
+            # for j in range(1, reduce_size):
+            #     ret_val = fn(ret_val, reduce_array[j])
             ret_val = a_storage[a_pos + int(start) * a_strides[reduce_dim]]
             for j in range(int(start) + 1, a_shape[reduce_dim]):
                 ret_val = fn(ret_val, a_storage[a_pos + j * a_strides[reduce_dim]])
@@ -292,8 +304,8 @@ def tensor_matrix_multiply(
     """
     # 前行后列，即为第一个矩阵的在列维度的长度；
     n_iters = a_shape[-1]
-    for i in range(len(out)):
-        out_idx = np.zeros(MAX_DIMS, np.int32)
+    for i in prange(len(out)):
+        out_idx = np.empty(MAX_DIMS, np.int32)
         to_index(i, out_shape, out_idx)
         a_idx = np.copy(out_idx)
         b_idx = np.copy(out_idx)
@@ -304,7 +316,7 @@ def tensor_matrix_multiply(
             b_idx[0] = 0
 
         cur_res = 0
-        for j in range(n_iters):
+        for j in prange(n_iters):
             a_idx[len(out_shape) - 1] = j
             b_idx[len(out_shape) - 2] = j
 
